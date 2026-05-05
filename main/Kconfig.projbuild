@@ -1,0 +1,21 @@
+menu "FanESP Configuration"
+
+    config FANESP_WIFI_SSID
+        string "WiFi SSID"
+        default "myssid"
+        help
+            WiFi network name.
+
+    config FANESP_WIFI_PASSWORD
+        string "WiFi Password"
+        default "mypassword"
+        help
+            WiFi password.
+
+    config FANESP_MDNS_HOSTNAME
+        string "mDNS hostname"
+        default "esp"
+        help
+            Device accessible at <hostname>.local
+
+endmenu

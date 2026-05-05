@@ -1,0 +1,18 @@
+{
+  "C_Cpp.intelliSenseEngine": "default",
+  "clangd.path": "/Users/humanfriend22/.espressif/tools/esp-clang/esp-20.1.1_20250829/esp-clang/bin/clangd",
+  "clangd.arguments": [
+    "--background-index",
+    "--query-driver=**",
+    "--compile-commands-dir=/Users/humanfriend22/dev/esp/fanesp/build"
+  ],
+  "idf.currentSetup": "/Users/humanfriend22/.espressif/v6.0/esp-idf",
+  "idf.flashType": "UART",
+  "idf.port": "/dev/tty.usbmodem2101",
+  "idf.openOcdConfigs": [
+    "board/esp32c6-builtin.cfg"
+  ],
+  "idf.customExtraVars": {
+    "IDF_TARGET": "esp32c6"
+  }
+}
