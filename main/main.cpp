@@ -6,6 +6,7 @@
 #include <esp_log.h>
 #include <esp_netif.h>
 #include <esp_event.h>
+#include <esp_pm.h>
 #include <esp_wifi.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -113,6 +114,7 @@ static void wifi_init_sta() {
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
+    esp_wifi_set_ps(WIFI_PS_MIN_MODEM);
 
     ESP_LOGI(TAG, "Connecting to WiFi SSID: %s", CFG_WIFI_SSID);
 
@@ -141,6 +143,13 @@ static void initialise_mdns() {
 // ─── app_main ───────────────────────────────────────────────────────────────
 
 extern "C" void app_main(void) {
+    esp_pm_config_t pm_config = {
+        .max_freq_mhz = 80,
+        .min_freq_mhz = 40,
+        .light_sleep_enable = false,
+    };
+    esp_pm_configure(&pm_config);
+
     esp_err_t err = nvs_flash_init();
     if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
         ESP_ERROR_CHECK(nvs_flash_erase());
