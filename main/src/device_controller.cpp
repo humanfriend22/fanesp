@@ -4,7 +4,7 @@
 
 #include "include/device_controller.h"
 #include "include/config.h"
-#include "fanlamp.h"
+#include "codecs.h"
 
 #include <cstring>
 #include <esp_log.h>
@@ -34,7 +34,7 @@ int DeviceController::find_device_by_id(const fanesp::BleAdvConfig &conf) {
 }
 
 std::optional<PersistentDevice> DeviceController::discover_device(int duration_ms) {
-    auto fanlamp_codecs = fanesp::codecs::get_fanlamp_codecs();
+    auto fanlamp_codecs = fanesp::codecs::get_all_codecs();
 
     temp_codecs = fanlamp_codecs.data();
     temp_codecs_count = fanlamp_codecs.size();
@@ -96,9 +96,13 @@ std::vector<PersistentDevice> DeviceController::load_devices() {
         char key[16];
         snprintf(key, sizeof(key), "dev_%lu", (unsigned long)i);
         size_t len = sizeof(PersistentDevice);
-        PersistentDevice device;
+        PersistentDevice device = {};
         err = nvs_get_blob(nvs_handle, key, &device, &len);
-        if (err != ESP_OK) continue;
+        if (err != ESP_OK || len != sizeof(PersistentDevice)) {
+            ESP_LOGW(TAG, "Skipping stale device %u (blob size %zu != expected %zu)", i, len,
+                     sizeof(PersistentDevice));
+            continue;
+        }
 
         int existing = find_device_by_id(device.conf);
         if (existing >= 0) {
@@ -130,7 +134,7 @@ bool DeviceController::light(size_t device_id, bool on) {
     }
 
     PersistentDevice &device = _discovered_devices[device_id];
-    auto fanlamp_codecs = fanesp::codecs::get_fanlamp_codecs();
+    auto fanlamp_codecs = fanesp::codecs::get_all_codecs();
 
     fanesp::Codec *codec = nullptr;
     for (size_t i = 0; i < fanlamp_codecs.size(); i++) {
@@ -171,7 +175,7 @@ bool DeviceController::fan(size_t device_id, int speed) {
     }
 
     PersistentDevice &device = _discovered_devices[device_id];
-    auto fanlamp_codecs = fanesp::codecs::get_fanlamp_codecs();
+    auto fanlamp_codecs = fanesp::codecs::get_all_codecs();
 
     fanesp::Codec *codec = nullptr;
     for (size_t i = 0; i < fanlamp_codecs.size(); i++) {
@@ -215,7 +219,7 @@ bool DeviceController::execute(size_t device_id, const std::string &feature,
     }
 
     PersistentDevice &device = _discovered_devices[device_id];
-    auto fanlamp_codecs = fanesp::codecs::get_fanlamp_codecs();
+    auto fanlamp_codecs = fanesp::codecs::get_all_codecs();
 
     fanesp::Codec *codec = nullptr;
     for (size_t i = 0; i < fanlamp_codecs.size(); i++) {
@@ -255,7 +259,7 @@ bool DeviceController::light_cw(size_t device_id, int cold, int warm) {
     }
 
     PersistentDevice &device = _discovered_devices[device_id];
-    auto fanlamp_codecs = fanesp::codecs::get_fanlamp_codecs();
+    auto fanlamp_codecs = fanesp::codecs::get_all_codecs();
 
     fanesp::Codec *codec = nullptr;
     for (size_t i = 0; i < fanlamp_codecs.size(); i++) {

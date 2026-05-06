@@ -52,4 +52,31 @@ uint16_t crc16_le(const std::vector<uint8_t>& buf, uint16_t seed, uint16_t poly 
  */
 uint16_t crc16_ccitt(const std::vector<uint8_t>& buf, uint16_t seed);
 
-} // namespace ble_adv
+/**
+ * @brief 16-bit LFSR whitening used by Mantra codec (symmetric).
+ *
+ * @param buf    Input buffer.
+ * @param seed   Initial 16-bit LFSR state.
+ * @param param  LFSR feedback polynomial (default 4777).
+ * @param xorer  Fixed XOR applied to each output byte (default 73).
+ */
+std::vector<uint8_t> whiten16(const std::vector<uint8_t>& buf, uint16_t seed,
+                               uint16_t param = 4777, uint8_t xorer = 73);
+
+/**
+ * @brief Apply ZhiMei V1 matrix encoding to a buffer.
+ *
+ * out[i] = ((buf[i] ^ pivot) + MATRIX[(key+i)&0xF] + 256) % 256
+ * where pivot = MATRIX[((buf[1]>>4)&15) ^ (buf[1]&15)]
+ */
+std::vector<uint8_t> zhimei_apply_matrix(std::vector<uint8_t> buf, uint8_t key);
+
+/**
+ * @brief Inverse of zhimei_apply_matrix.
+ *
+ * out[i] = ((buf[i] - MATRIX[(key+i)&0xF] + 256) % 256) ^ pivot
+ * where pivot = ((buf[0] - MATRIX[key&0xF] + 256) % 256) ^ 0xFF
+ */
+std::vector<uint8_t> zhimei_unapply_matrix(std::vector<uint8_t> buf, uint8_t key);
+
+} // namespace fanesp

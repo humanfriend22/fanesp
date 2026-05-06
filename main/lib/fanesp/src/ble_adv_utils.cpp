@@ -66,4 +66,44 @@ uint16_t crc16_ccitt(const std::vector<uint8_t>& buf, uint16_t seed) {
     return crc;
 }
 
-} // namespace ble_adv
+std::vector<uint8_t> whiten16(const std::vector<uint8_t>& buf, uint16_t seed,
+                               uint16_t param, uint8_t xorer) {
+    std::vector<uint8_t> out;
+    out.reserve(buf.size());
+    uint16_t r = seed;
+    for (uint8_t val : buf) {
+        uint8_t b = 0;
+        for (int j = 0; j < 8; j++) {
+            uint16_t high = r & 0x8000u;
+            r = static_cast<uint16_t>((r << 1) & 0xFFFFu);
+            if (high) {
+                r ^= param;
+                b |= static_cast<uint8_t>(1u << (7 - j));
+            }
+            if (r == 0) r = 1061;
+        }
+        out.push_back(val ^ xorer ^ b);
+    }
+    return out;
+}
+
+static const uint8_t ZHIMEI_MATRIX[16] = {29, 4, 17, 32, 152, 117, 40, 70,
+                                           11, 175, 67, 172, 214, 190, 137, 142};
+
+std::vector<uint8_t> zhimei_apply_matrix(std::vector<uint8_t> buf, uint8_t key) {
+    uint8_t pivot = ZHIMEI_MATRIX[((buf[1] >> 4) & 15) ^ (buf[1] & 15)];
+    for (size_t i = 0; i < buf.size(); i++) {
+        buf[i] = static_cast<uint8_t>(((buf[i] ^ pivot) + ZHIMEI_MATRIX[(key + i) & 0xFu] + 256u) % 256u);
+    }
+    return buf;
+}
+
+std::vector<uint8_t> zhimei_unapply_matrix(std::vector<uint8_t> buf, uint8_t key) {
+    uint8_t pivot = static_cast<uint8_t>(((buf[0] - ZHIMEI_MATRIX[key & 0xFu] + 256u) % 256u) ^ 0xFFu);
+    for (size_t i = 0; i < buf.size(); i++) {
+        buf[i] = static_cast<uint8_t>(((buf[i] - ZHIMEI_MATRIX[(key + i) & 0xFu] + 256u) % 256u) ^ pivot);
+    }
+    return buf;
+}
+
+} // namespace fanesp

@@ -30,6 +30,7 @@ struct BleAdvEncCmd {
  */
 struct BleAdvConfig {
     uint32_t id                = 0; ///< Device identifier (codec-dependent width up to 32 bits).
+    uint32_t aux_id            = 0; ///< Codec-specific extra identity (e.g. ZhiJia MAC, lower 24 bits).
     uint8_t  index             = 0; ///< Group / channel index within a device.
     uint8_t  tx_count          = 0; ///< Rolling transmit counter (wraps at _tx_max).
     uint8_t  app_restart_count = 1; ///< Incremented when tx_count wraps.
